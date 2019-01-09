@@ -54,16 +54,18 @@ class AuthorizationService(object):
             self.token_required = False
 
     def get_new_token(self):
-        rsp = requests.get("%s?service=%s&scope=%s" %
-                           (self.url, self.service_name, self.desired_scope),
+        scope = '&scope={}'.format(self.desired_scope) if self.desired_scope else ''
+        rsp = requests.get("%s?service=%s%s" %
+                           (self.url, self.service_name, scope),
                            auth=self.auth, verify=self.verify,
                            timeout=self.api_timeout)
-        if not rsp.ok:
-            logger.error("Can't get token for authentication")
-            self.token = ""
-        else:
+        if rsp.ok:
             self.token = rsp.json()['token']
 
             # We managed to get a new token, update the current scope to the one we
             # wanted
             self.scope = self.desired_scope
+        else:
+            logger.error("Can't get token for authentication")
+            self.token = ""
+            self.scope = None

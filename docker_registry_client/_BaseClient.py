@@ -181,7 +181,7 @@ class BaseClientV2(CommonBaseClient):
         return 2
 
     def check_status(self):
-        self.auth.desired_scope = 'registry:catalog:*'
+        self.auth.desired_scope = ''
         return self._http_call('/v2/', get)
 
     def catalog(self):

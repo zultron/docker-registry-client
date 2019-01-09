@@ -25,6 +25,7 @@ setup(
     ],
     keywords='docker docker-registry REST',
     packages=find_packages(),
+    scripts=['docker-registry-show.py'],
     install_requires=[
         'requests>=2.4.3, <3.0.0',
         'ecdsa>=0.13.0, <0.14.0',

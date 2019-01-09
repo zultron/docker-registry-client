@@ -39,8 +39,14 @@ class CLI(object):
         self.parser.add_argument('--username', metavar='USERNAME')
         self.parser.add_argument('--password', metavar='PASSWORD')
 
-        self.parser.add_argument('--authorization-service', metavar='AUTH_SERVICE', type=str,
-                                 help='authorization service URL (including scheme) (for registry v2 only)')
+        self.parser.add_argument(
+            '--authorization-service-url', metavar='AUTH_SERVICE_URL', type=str,
+            help='complete authorization service URL including scheme (for registry v2 only)',
+        )
+        self.parser.add_argument(
+            '--authorization-service-name', metavar='AUTH_SERVICE_NAME', type=str,
+            help='authorization URL "service" parameter for custom auth services (v2 only)',
+        )
 
         self.parser.add_argument('registry', metavar='REGISTRY', nargs=1,
                                  help='registry URL (including scheme)')
@@ -71,7 +77,8 @@ class CLI(object):
             kwargs['api_version'] = args.api_version
 
         client = DockerRegistryClient(args.registry[0],
-                                      auth_service_url=args.authorization_service,
+                                      auth_service_url=args.authorization_service_url,
+                                      auth_service_name=args.authorization_service_name,
                                       verify_ssl=args.verify_ssl,
                                       **kwargs)
 

@@ -7,7 +7,7 @@ from requests.exceptions import HTTPError
 from requests.models import Response
 
 
-REGISTRY_URL = "https://registry.example.com:5000"
+REGISTRY_URL = "https://registry.example.com:5000/v2/token"
 TEST_NAMESPACE = 'library'
 TEST_REPO = 'myrepo'
 TEST_NAME = '%s/%s' % (TEST_NAMESPACE, TEST_REPO)

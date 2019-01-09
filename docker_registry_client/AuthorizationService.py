@@ -2,7 +2,7 @@ try:
     from urllib.parse import urlsplit
 except ImportError:
     from urlparse import urlsplit
-# import urlparse
+
 import requests
 import logging
 
@@ -19,10 +19,10 @@ class AuthorizationService(object):
     authenticate to the registry. Token has to be renew each time we change
     "scope".
     """
-    def __init__(self, registry, url="", auth=None, verify=False,
+    def __init__(self, service_name, url="", auth=None, verify=False,
                  api_timeout=None):
-        # Registry ip:port
-        self.registry = urlsplit(registry).netloc
+        # Service name (often, but not always, just the registry host Registry ip:port)
+        self.service_name = service_name
         # Service url, ip:port
         self.url = url
         # Authentication (user, password) or None. Used by request to do
@@ -54,15 +54,16 @@ class AuthorizationService(object):
             self.token_required = False
 
     def get_new_token(self):
-        rsp = requests.get("%s/v2/token?service=%s&scope=%s" %
-                           (self.url, self.registry, self.desired_scope),
+        rsp = requests.get("%s?service=%s&scope=%s" %
+                           (self.url, self.service_name, self.desired_scope),
                            auth=self.auth, verify=self.verify,
                            timeout=self.api_timeout)
         if not rsp.ok:
             logger.error("Can't get token for authentication")
             self.token = ""
+        else:
+            self.token = rsp.json()['token']
 
-        self.token = rsp.json()['token']
-        # We managed to get a new token, update the current scope to the one we
-        # wanted
-        self.scope = self.desired_scope
+            # We managed to get a new token, update the current scope to the one we
+            # wanted
+            self.scope = self.desired_scope

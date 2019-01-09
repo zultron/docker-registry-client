@@ -5,6 +5,12 @@ import json
 from .AuthorizationService import AuthorizationService
 from .manifest import sign as sign_manifest
 
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
+
+
 # urllib3 throws some ssl warnings with older versions of python
 #   they're probably ok for the registry client to ignore
 import warnings
@@ -152,11 +158,18 @@ class BaseClientV2(CommonBaseClient):
     schema_2 = BASE_CONTENT_TYPE + '.v2+json'
 
     def __init__(self, *args, **kwargs):
+        host = args[0]
+
+        # Default to the main part of the repository hostname if the service name is missing
+        # or None (the default)
+        auth_service_name = kwargs.pop("auth_service_name") or urlsplit(host).netloc
         auth_service_url = kwargs.pop("auth_service_url", "")
+
         super(BaseClientV2, self).__init__(*args, **kwargs)
+
         self._manifest_digests = {}
         self.auth = AuthorizationService(
-            registry=self.host,
+            service_name=auth_service_name,
             url=auth_service_url,
             verify=self.method_kwargs.get('verify', False),
             auth=self.method_kwargs.get('auth', None),
@@ -270,7 +283,7 @@ class BaseClientV2(CommonBaseClient):
 
 
 def BaseClient(host, verify_ssl=None, api_version=None, username=None,
-               password=None, auth_service_url="", api_timeout=None):
+               password=None, auth_service_url="", auth_service_name=None, api_timeout=None):
     if api_version == 1:
         return BaseClientV1(
             host, verify_ssl=verify_ssl, username=username, password=password,
@@ -279,14 +292,16 @@ def BaseClient(host, verify_ssl=None, api_version=None, username=None,
     elif api_version == 2:
         return BaseClientV2(
             host, verify_ssl=verify_ssl, username=username, password=password,
-            auth_service_url=auth_service_url, api_timeout=api_timeout,
+            auth_service_url=auth_service_url, auth_service_name=auth_service_name,
+            api_timeout=api_timeout,
         )
     elif api_version is None:
         # Try V2 first
         logger.debug("checking for v2 API")
         v2_client = BaseClientV2(
             host, verify_ssl=verify_ssl, username=username, password=password,
-            auth_service_url=auth_service_url, api_timeout=api_timeout,
+            auth_service_url=auth_service_url, auth_service_name=auth_service_name,
+            api_timeout=api_timeout,
         )
         try:
             v2_client.check_status()

@@ -165,7 +165,7 @@ class BaseClientV2(CommonBaseClient):
 
         # Default to the main part of the repository hostname if the service name is missing
         # or None (the default)
-        auth_service_name = kwargs.pop("auth_service_name") or urlsplit(host).netloc
+        auth_service_name = kwargs.pop("auth_service_name", "") or urlsplit(host).netloc
 
         # Get the URL of the auth service from the args, accounting for the deprecated url arg
         auth_service_url = kwargs.pop("auth_service_url_full", "")
@@ -189,7 +189,7 @@ class BaseClientV2(CommonBaseClient):
         # provided
         # See: http://docs.python-requests.org/en/master/user/quickstart/#custom-headers
         if auth_service_url:
-          auth = self.method_kwargs.pop('auth')
+          auth = self.method_kwargs.pop('auth', None)
         else:
           auth = self.method_kwargs.get('auth')
 

@@ -3,9 +3,9 @@ import json
 import warnings
 
 try:
-    from urllib.parse import urlsplit
+    from urllib.parse import urljoin, urlsplit
 except ImportError:
-    from urlparse import urlsplit
+    from urlparse import urljoin, urlsplit
 
 from requests import get, put, delete
 from requests.exceptions import HTTPError
@@ -166,7 +166,17 @@ class BaseClientV2(CommonBaseClient):
         # Default to the main part of the repository hostname if the service name is missing
         # or None (the default)
         auth_service_name = kwargs.pop("auth_service_name") or urlsplit(host).netloc
-        auth_service_url = kwargs.pop("auth_service_url", "")
+
+        # Get the URL of the auth service from the args, accounting for the deprecated url arg
+        auth_service_url = kwargs.pop("auth_service_url_full", "")
+        deprecated_auth_service_url_arg = kwargs.pop("auth_service_url", "")
+
+        if deprecated_auth_service_url_arg:
+            warnings.warn(
+                'The auth_service_url argument is deprecated; use auth_service_url_full instead'
+            )
+            if not auth_service_url:
+              auth_service_url = urljoin(deprecated_auth_service_url_arg, 'v2/token')
 
         super(BaseClientV2, self).__init__(*args, **kwargs)
 
@@ -298,8 +308,9 @@ class BaseClientV2(CommonBaseClient):
         return response
 
 
-def BaseClient(host, verify_ssl=None, api_version=None, username=None,
-               password=None, auth_service_url="", auth_service_name=None, api_timeout=None):
+def BaseClient(host, verify_ssl=None, api_version=None, username=None, password=None,
+               auth_service_url="", auth_service_url_full="", auth_service_name=None,
+               api_timeout=None):
     if api_version == 1:
         return BaseClientV1(
             host, verify_ssl=verify_ssl, username=username, password=password,
@@ -308,16 +319,16 @@ def BaseClient(host, verify_ssl=None, api_version=None, username=None,
     elif api_version == 2:
         return BaseClientV2(
             host, verify_ssl=verify_ssl, username=username, password=password,
-            auth_service_url=auth_service_url, auth_service_name=auth_service_name,
-            api_timeout=api_timeout,
+            auth_service_url=auth_service_url, auth_service_url_full=auth_service_url_full,
+            auth_service_name=auth_service_name, api_timeout=api_timeout,
         )
     elif api_version is None:
         # Try V2 first
         logger.debug("checking for v2 API")
         v2_client = BaseClientV2(
             host, verify_ssl=verify_ssl, username=username, password=password,
-            auth_service_url=auth_service_url, auth_service_name=auth_service_name,
-            api_timeout=api_timeout,
+            auth_service_url=auth_service_url, auth_service_url_full=auth_service_url_full,
+            auth_service_name=auth_service_name, api_timeout=api_timeout,
         )
         try:
             v2_client.check_status()

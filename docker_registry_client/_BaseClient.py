@@ -167,12 +167,25 @@ class BaseClientV2(CommonBaseClient):
 
         super(BaseClientV2, self).__init__(*args, **kwargs)
 
+        # If we are using token authentication with v2, we use the username
+        # and pw only for the authorization service and not for the registry
+        # itself.
+        #
+        # We must pop the auth kwarg so it does not get sent to requests,
+        # because override the authentication token if it sees the username/password
+        # provided
+        # See: http://docs.python-requests.org/en/master/user/quickstart/#custom-headers
+        if auth_service_url:
+          auth = self.method_kwargs.pop('auth')
+        else:
+          auth = self.method_kwargs.get('auth')
+
         self._manifest_digests = {}
         self.auth = AuthorizationService(
             service_name=auth_service_name,
             url=auth_service_url,
             verify=self.method_kwargs.get('verify', False),
-            auth=self.method_kwargs.get('auth', None),
+            auth=auth,
             api_timeout=self.method_kwargs.get('api_timeout')
         )
 

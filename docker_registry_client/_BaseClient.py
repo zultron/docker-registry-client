@@ -1,21 +1,24 @@
 import logging
-from requests import get, put, delete
-from requests.exceptions import HTTPError
 import json
-from .AuthorizationService import AuthorizationService
-from .manifest import sign as sign_manifest
+import warnings
 
 try:
     from urllib.parse import urlsplit
 except ImportError:
     from urlparse import urlsplit
 
+from requests import get, put, delete
+from requests.exceptions import HTTPError
+
+from .AuthorizationService import AuthorizationService
+from .manifest import sign as sign_manifest
+
+
+# Module setup
 
 # urllib3 throws some ssl warnings with older versions of python
 #   they're probably ok for the registry client to ignore
-import warnings
-warnings.filterwarnings("ignore")
-
+warnings.filterwarnings("ignore", module="urllib3", append=True)
 
 logger = logging.getLogger(__name__)
 

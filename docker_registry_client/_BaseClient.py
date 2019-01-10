@@ -173,7 +173,8 @@ class BaseClientV2(CommonBaseClient):
 
         if deprecated_auth_service_url_arg:
             warnings.warn(
-                'The auth_service_url argument is deprecated; use auth_service_url_full instead'
+                'The auth_service_url argument is deprecated; use auth_service_url_full instead',
+                DeprecationWarning,
             )
             if not auth_service_url:
               auth_service_url = urljoin(deprecated_auth_service_url_arg, 'v2/token')

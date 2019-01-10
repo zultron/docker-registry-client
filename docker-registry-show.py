@@ -106,7 +106,8 @@ class CLI(object):
         if args.authorization_service:
             warnings.warn(
                 'The --authorization-service flag is deprecated; '
-                'use --authorization-service-url instead'
+                'use --authorization-service-url instead',
+                DeprecationWarning
             )
             kwargs.setdefault('auth_service_url_full',
                               urljoin(args.authorization_service, 'v2/token'))

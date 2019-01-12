@@ -7,7 +7,7 @@ try:
 except ImportError:
     from urlparse import urljoin, urlsplit
 
-from requests import get, put, delete
+from requests import get, delete, post, put
 from requests.exceptions import HTTPError
 
 from .AuthorizationService import AuthorizationService
@@ -156,6 +156,7 @@ class BaseClientV2(CommonBaseClient):
     LIST_TAGS = '/v2/{name}/tags/list'
     MANIFEST = '/v2/{name}/manifests/{reference}'
     BLOB = '/v2/{name}/blobs/{digest}'
+    BLOB_MOUNT = '/v2/{name}/blobs/uploads/?mount={digest}&from={origin}'
     schema_1_signed = BASE_CONTENT_TYPE + '.v1+prettyjws'
     schema_1 = BASE_CONTENT_TYPE + '.v1+json'
     schema_2 = BASE_CONTENT_TYPE + '.v2+json'
@@ -252,6 +253,11 @@ class BaseClientV2(CommonBaseClient):
         self.auth.desired_scope = 'repository:%s:*' % name
         return self._http_call(self.MANIFEST, delete,
                                name=name, reference=digest)
+
+    def copy_blob(self, origin, digest, destination):
+        self.auth.desired_scope = ['repository:%s:*' % repo for repo in (origin, destination)]
+        return self._http_call(self.BLOB_MOUNT, post,
+                               name=destination, digest=digest, origin=origin)
 
     def delete_blob(self, name, digest):
         self.auth.desired_scope = 'repository:%s:*' % name

@@ -4,7 +4,8 @@ import pytest
 
 from docker_registry_client._BaseClient import BaseClientV1, BaseClientV2
 from drc_test_utils.mock_registry import (
-    mock_v1_registry, mock_v2_registry, TEST_NAME, TEST_TAG,
+    mock_v1_registry, mock_v2_registry,
+    TEST_MANIFEST_DIGEST, TEST_NAME, TEST_NAME2, TEST_TAG,
 )
 
 
@@ -34,3 +35,6 @@ class TestBaseClientV2(object):
 
         assert BaseClientV2(self.url, auth_service_url_full='https://myhost.com/foo').auth.url \
             == 'https://myhost.com/foo'
+
+    def test_copy_blob(self):
+        BaseClientV2(self.url).copy_blob(TEST_NAME, TEST_MANIFEST_DIGEST, TEST_NAME2)

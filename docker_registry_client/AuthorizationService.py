@@ -54,11 +54,17 @@ class AuthorizationService(object):
             self.token_required = False
 
     def get_new_token(self):
-        scope = '&scope={}'.format(self.desired_scope) if self.desired_scope else ''
-        rsp = requests.get("%s?service=%s%s" %
-                           (self.url, self.service_name, scope),
-                           auth=self.auth, verify=self.verify,
-                           timeout=self.api_timeout)
+        rsp = requests.get(
+            self.url,
+            params={
+                'service': self._service_name,
+                'scope': self.desired_scope,
+            },
+            auth=self.auth,
+            verify=self.verify,
+            timeout=self.api_timeout
+        )
+
         if rsp.ok:
             self.token = rsp.json()['token']
 

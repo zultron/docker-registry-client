@@ -7,7 +7,7 @@ try:
 except ImportError:
     from urlparse import urljoin, urlsplit
 
-from requests import get, delete, post, put
+from requests import delete, get, head, post, put
 from requests.exceptions import HTTPError
 
 from .AuthorizationService import AuthorizationService
@@ -236,6 +236,15 @@ class BaseClientV2(CommonBaseClient):
             type=response.headers.get('Content-Type', 'application/json'),
             digest=self._manifest_digests[name, reference],
         )
+
+    def check_manifest(self, name, reference):
+        self.auth.desired_scope = 'repository:%s:*' % name
+        response = self._http_response(
+            self.MANIFEST, head, name=name, reference=reference,
+            schema=self.schema_1_signed,
+        )
+        self._cache_manifest_digest(name, reference, response=response)
+        return response.ok
 
     def put_manifest(self, name, reference, manifest):
         self.auth.desired_scope = 'repository:%s:*' % name

@@ -319,7 +319,13 @@ class BaseClientV2(CommonBaseClient):
         response = method(self.host + path,
                           data=data, headers=header, **self.method_kwargs)
         logger.debug("%s %s", response.status_code, response.reason)
-        response.raise_for_status()
+
+        try:
+            response.raise_for_status()
+        except HTTPError as e:
+            if e.response.content:
+                logger.error('Error Response: {}'.format(response.content))
+            raise
 
         return response
 

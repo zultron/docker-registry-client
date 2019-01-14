@@ -178,7 +178,7 @@ class BaseClientV2(CommonBaseClient):
                 DeprecationWarning,
             )
             if not auth_service_url:
-              auth_service_url = urljoin(deprecated_auth_service_url_arg, 'v2/token')
+                auth_service_url = urljoin(deprecated_auth_service_url_arg, 'v2/token')
 
         super(BaseClientV2, self).__init__(*args, **kwargs)
 
@@ -191,9 +191,9 @@ class BaseClientV2(CommonBaseClient):
         # provided
         # See: http://docs.python-requests.org/en/master/user/quickstart/#custom-headers
         if auth_service_url:
-          auth = self.method_kwargs.pop('auth', None)
+            auth = self.method_kwargs.pop('auth', None)
         else:
-          auth = self.method_kwargs.get('auth')
+            auth = self.method_kwargs.get('auth')
 
         self._manifest_digests = {}
         self.auth = AuthorizationService(

@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 import warnings
 
 try:
@@ -250,7 +250,12 @@ class BaseClientV2(CommonBaseClient):
         self.auth.desired_scope = 'repository:%s:*' % name
         content = {}
         content.update(manifest._content)
-        content.update({'name': name, 'tag': reference})
+
+        content['name'] = name
+
+        # If reference is a tag, update it; otherwise, leave the tag as is
+        if not reference.startswith('sha256:'):
+            content['tag'] = reference
 
         return self._http_call(
             self.MANIFEST, put, data=sign_manifest(content),

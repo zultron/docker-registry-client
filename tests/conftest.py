@@ -38,6 +38,10 @@ def registry(docker_client):
                 5000: 5000,
             },
         ),
+        # Have to explicitly enable support for v1 schemas on recent versions of registry
+        environment={
+          'REGISTRY_COMPATIBILITY_SCHEMA1': '{ "enabled": true }',
+        },
     )
     try:
         cli.start(cont)

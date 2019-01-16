@@ -57,7 +57,7 @@ class AuthorizationService(object):
         rsp = requests.get(
             self.url,
             params={
-                'service': self._service_name,
+                'service': self.service_name,
                 'scope': self.desired_scope,
             },
             auth=self.auth,

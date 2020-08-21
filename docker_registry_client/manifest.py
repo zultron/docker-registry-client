@@ -1,6 +1,7 @@
 # Extracted from python-dxf (https://git.io/vM0EB) used under license (MIT).
 import base64
 import ecdsa
+import hashlib
 import jws
 import json
 
@@ -89,3 +90,17 @@ def sign(manifest, key=None):
         json.dumps(signatures) +
         format_tail
     )
+
+
+def digest(manifest):
+    # For manifests, the digest is the manifest body without the signature content, also known as
+    # the JWS payload - https://docs.docker.com/registry/spec/api/#content-digests
+    m = assign({}, manifest)
+
+    try:
+        del m['signatures']
+    except KeyError:
+        pass
+
+    manifest_json = json.dumps(m, sort_keys=True)
+    return 'sha256:{}'.format(hashlib.sha256(manifest_json.encode('utf-8')).hexdigest())

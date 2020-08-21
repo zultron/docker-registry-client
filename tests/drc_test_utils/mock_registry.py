@@ -7,10 +7,12 @@ from requests.exceptions import HTTPError
 from requests.models import Response
 
 
-REGISTRY_URL = "https://registry.example.com:5000"
+REGISTRY_URL = "https://registry.example.com:5000/"
 TEST_NAMESPACE = 'library'
 TEST_REPO = 'myrepo'
+TEST_REPO2 = 'myotherrepo'
 TEST_NAME = '%s/%s' % (TEST_NAMESPACE, TEST_REPO)
+TEST_NAME2 = '%s/%s' % (TEST_NAMESPACE, TEST_REPO2)
 TEST_TAG = 'latest'
 TEST_MANIFEST_DIGEST = '''\
 sha256:6c3c624b58dbbcd3c0dd82b4c53f04194d1247c6eebdaab7c610cf7d66709b3b'''
@@ -51,6 +53,8 @@ class MockRegistry(object):
         return s.format(namespace=TEST_NAMESPACE,
                         repo=TEST_REPO,
                         name=TEST_NAME,
+                        repo2=TEST_REPO2,
+                        name2=TEST_NAME2,
                         tag=TEST_TAG,
                         digest=TEST_MANIFEST_DIGEST)
 
@@ -64,6 +68,9 @@ class MockRegistry(object):
 
     def get(self, *args, **kwargs):
         return self.call(self.GET_MAP, *args, **kwargs)
+
+    def post(self, *args, **kwargs):
+        return self.call(self.POST_MAP, *args, **kwargs)
 
     def delete(self, *args, **kwargs):
         return self.call(self.DELETE_MAP, *args, **kwargs)
@@ -96,6 +103,7 @@ class MockV2Registry(MockRegistry):
     TAGS_LIBRARY = MockRegistry.format('/v2/{repo}/tags/list')
     MANIFEST_TAG = MockRegistry.format('/v2/{name}/manifests/{tag}')
     MANIFEST_DIGEST = MockRegistry.format('/v2/{name}/manifests/{digest}')
+    BLOB_MOUNT = MockRegistry.format('/v2/{name2}/blobs/uploads/?mount={digest}&from={name}')
 
     GET_MAP = {
         '/v2/': MockResponse(200),
@@ -126,12 +134,18 @@ class MockV2Registry(MockRegistry):
         MANIFEST_DIGEST: MockResponse(202, data={}),
     }
 
+    POST_MAP = {
+        BLOB_MOUNT: MockResponse(201, data={}),
+    }
+
 
 def mock_v2_registry():
     v2_registry = MockV2Registry()
     flexmock(_BaseClient,
              get=v2_registry.get,
-             delete=v2_registry.delete)
+             delete=v2_registry.delete,
+             post=v2_registry.post)
+
     return REGISTRY_URL
 
 

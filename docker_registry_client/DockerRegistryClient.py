@@ -5,19 +5,20 @@ from .Repository import Repository
 
 
 class DockerRegistryClient(object):
-    def __init__(self, host, verify_ssl=None, api_version=None, username=None,
-                 password=None, auth_service_url="", api_timeout=None):
+    def __init__(self, host, verify_ssl=None, api_version=None, username=None, password=None,
+                 auth_service_url="", auth_service_url_full="", auth_service_name=None,
+                 api_timeout=None):
         """
         Constructor
 
         :param host: str, registry URL including scheme
         :param verify_ssl: bool, whether to verify SSL certificate
         :param api_version: int, API version to require
-        :param username: username to use for basic authentication when
-          connecting to the registry
+        :param username: username to use for basic authentication when connecting to the registry
         :param password: password to use for basic authentication
-        :param auth_service_url: authorization service URL (including scheme,
-          for v2 only)
+        :param auth_service_url_full: authorization service URL with scheme and path (v2),
+        :param auth_service_url: DEPRECATED authorization service URL with scheme but no path (v2)
+        :param auth_service_name: service name to use with auth services; defaults to registry host
         :param api_timeout: timeout for external request
         """
 
@@ -25,6 +26,8 @@ class DockerRegistryClient(object):
                                        api_version=api_version,
                                        username=username, password=password,
                                        auth_service_url=auth_service_url,
+                                       auth_service_url_full=auth_service_url_full,
+                                       auth_service_name=auth_service_name,
                                        api_timeout=api_timeout)
         self.api_version = self._base_client.version
         self._repositories = {}

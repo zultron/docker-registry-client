@@ -16,11 +16,11 @@ def docker_client():
 
 
 def wait_till_up(url, attempts):
-    for i in range(attempts-1):
+    for i in range(attempts - 1):
         try:
             requests.get(url)
             return
-        except exceptions.ConnectionError as e:
+        except exceptions.ConnectionError:
             time.sleep(0.1 * 2**i)
     else:
         requests.get(url)
@@ -38,6 +38,10 @@ def registry(docker_client):
                 5000: 5000,
             },
         ),
+        # Have to explicitly enable support for v1 schemas on recent versions of registry
+        environment={
+          'REGISTRY_COMPATIBILITY_SCHEMA1': '{ "enabled": true }',
+        },
     )
     try:
         cli.start(cont)

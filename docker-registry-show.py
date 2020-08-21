@@ -18,18 +18,27 @@ limitations under the License.
 from __future__ import absolute_import
 
 import argparse
-from docker_registry_client import DockerRegistryClient
 import json
 import logging
+import warnings
+
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
+
+
 import requests
+
+from docker_registry_client import DockerRegistryClient
 
 
 class CLI(object):
     def __init__(self):
         self.parser = argparse.ArgumentParser()
-        excl_group = self.parser.add_mutually_exclusive_group()
-        excl_group.add_argument("-q", "--quiet", action="store_true")
-        excl_group.add_argument("-v", "--verbose", action="store_true")
+        verb_excl_group = self.parser.add_mutually_exclusive_group()
+        verb_excl_group.add_argument("-q", "--quiet", action="store_true")
+        verb_excl_group.add_argument("-v", "--verbose", action="store_true")
 
         self.parser.add_argument('--verify-ssl', dest='verify_ssl',
                                  action='store_true')
@@ -39,8 +48,30 @@ class CLI(object):
         self.parser.add_argument('--username', metavar='USERNAME')
         self.parser.add_argument('--password', metavar='PASSWORD')
 
-        self.parser.add_argument('--authorization-service', metavar='AUTH_SERVICE', type=str,
-                                 help='authorization service URL (including scheme) (for registry v2 only)')
+        auth_excl_group = self.parser.add_mutually_exclusive_group()
+        auth_excl_group.add_argument(
+            '--authorization-service-url', metavar='AUTH_SERVICE_URL', type=str,
+            help=(
+                'auth service host URL with with scheme and path '
+                '[e.g. http://foo.com/v2/token] (v2 API only)'
+            ),
+        )
+        # DEPRECATED old form of the argument that assumes a path for the URL
+        auth_excl_group.add_argument(
+            '--authorization-service', metavar='AUTH_SERVICE', type=str,
+            help=(
+                '[DEPRECATED] auth service host URL with scheme, without path '
+                '[e.g. http://foo.com] (v2 API only)'
+            ),
+        )
+
+        self.parser.add_argument(
+            '--authorization-service-name', metavar='AUTH_SERVICE_NAME', type=str,
+            help=(
+                'auth service URL "service" query parameter for custom auth service names '
+                '[e.g. container_registry, for GitLab auth] (v2 API only)'
+            ),
+        )
 
         self.parser.add_argument('registry', metavar='REGISTRY', nargs=1,
                                  help='registry URL (including scheme)')
@@ -65,15 +96,26 @@ class CLI(object):
         kwargs = {
             'username': args.username,
             'password': args.password,
+            'verify_ssl': args.verify_ssl,
+            'auth_service_name': args.authorization_service_name,
+            'auth_service_url_full': args.authorization_service_url
         }
+
+        # Get the URL of the auth service from the command-line flags, accounting for the
+        # deprecated url flag; only use the deprecated one if the
+        if args.authorization_service:
+            warnings.warn(
+                'The --authorization-service flag is deprecated; '
+                'use --authorization-service-url instead',
+                DeprecationWarning
+            )
+            kwargs.setdefault('auth_service_url_full',
+                              urljoin(args.authorization_service, 'v2/token'))
 
         if args.api_version:
             kwargs['api_version'] = args.api_version
 
-        client = DockerRegistryClient(args.registry[0],
-                                      auth_service_url=args.authorization_service,
-                                      verify_ssl=args.verify_ssl,
-                                      **kwargs)
+        client = DockerRegistryClient(args.registry[0], **kwargs)
 
         if args.repository:
             if args.ref:

@@ -38,12 +38,12 @@ def test_base_client_edit_manifest(docker_client, registry):
     pull = list(pull)
     tag = 'localhost:5000/x-drc-example:x-drc-test-put'
 
+    errors = [evt for evt in pull if 'error' in evt]
+    assert errors == []
+
     expected_statuses = {
         'Status: Downloaded newer image for ' + tag,
         'Status: Image is up to date for ' + tag,
     }
-
-    errors = [evt for evt in pull if 'error' in evt]
-    assert errors == []
 
     assert {evt.get('status') for evt in pull} & expected_statuses

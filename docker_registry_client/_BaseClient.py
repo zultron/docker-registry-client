@@ -213,6 +213,18 @@ class BaseClientV2(CommonBaseClient):
         return self._http_call(self.MANIFEST, delete,
                                name=name, reference=digest)
 
+    def get_blob(self, name, digest):
+        self.auth.desired_scope = 'repository:%s:*' % name
+        response = self._http_response(
+            self.BLOB, get, name=name, digest=digest,
+            schema=self.schema_1_signed,
+        )
+        return dict(
+            content=response.json(),
+            type=response.headers.get('Content-Type', 'application/json'),
+            digest=response.headers.get('Docker-Content-Digest'),
+        )
+
     def delete_blob(self, name, digest):
         self.auth.desired_scope = 'repository:%s:*' % name
         return self._http_call(self.BLOB, delete,

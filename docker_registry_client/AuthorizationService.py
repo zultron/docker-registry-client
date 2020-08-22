@@ -19,9 +19,12 @@ class AuthorizationService(object):
     authenticate to the registry. Token has to be renew each time we change
     "scope".
     """
-    def __init__(self, service_name, url="", auth=None, verify=False,
-                 api_timeout=None):
-        # Service name (often, but not always, just the registry host Registry ip:port)
+
+    def __init__(
+        self, service_name, url="", auth=None, verify=False, api_timeout=None
+    ):
+        # Service name (often, but not always, just the registry host
+        # Registry ip:port)
         self.service_name = service_name
         # Service url, ip:port
         self.url = url
@@ -57,19 +60,19 @@ class AuthorizationService(object):
         rsp = requests.get(
             self.url,
             params={
-                'service': self.service_name,
-                'scope': self.desired_scope,
+                "service": self.service_name,
+                "scope": self.desired_scope,
             },
             auth=self.auth,
             verify=self.verify,
-            timeout=self.api_timeout
+            timeout=self.api_timeout,
         )
 
         if rsp.ok:
-            self.token = rsp.json()['token']
+            self.token = rsp.json()["token"]
 
-            # We managed to get a new token, update the current scope to the one we
-            # wanted
+            # We managed to get a new token, update the current scope
+            # to the one we wanted
             self.scope = self.desired_scope
         else:
             logger.error("Can't get token for authentication")

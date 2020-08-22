@@ -8,6 +8,6 @@ from drc_test_utils.mock_registry import mock_v1_registry
 class TestImage(object):
     def test_init(self):
         url = mock_v1_registry()
-        image_id = 'test_image_id'
+        image_id = "test_image_id"
         image = Image(image_id, BaseClientV1(url))
         assert image.image_id == image_id

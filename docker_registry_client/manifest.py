@@ -12,12 +12,12 @@ def assign(obj, *objs):
     return obj
 
 
-def force_bytes(s, encoding='utf8'):
+def force_bytes(s, encoding="utf8"):
     return s if isinstance(s, bytes) else s.encode(encoding)
 
 
 def _urlsafe_b64encode_bytes(b):
-    return base64.urlsafe_b64encode(b).rstrip(b'=').decode('utf-8')
+    return base64.urlsafe_b64encode(b).rstrip(b"=").decode("utf-8")
 
 
 def _urlsafe_b64encode(s):
@@ -43,7 +43,7 @@ def sign(manifest, key=None):
     m = assign({}, manifest)
 
     try:
-        del m['signatures']
+        del m["signatures"]
     except KeyError:
         pass
 
@@ -55,52 +55,54 @@ def sign(manifest, key=None):
         key = ecdsa.SigningKey.generate(curve=ecdsa.NIST256p)
 
     manifest64 = _urlsafe_b64encode(manifest_json)
-    format_length = manifest_json.rfind('}')
+    format_length = manifest_json.rfind("}")
     format_tail = manifest_json[format_length:]
-    protected_json = json.dumps({
-        'formatLength': format_length,
-        'formatTail': _urlsafe_b64encode(format_tail)
-    })
+    protected_json = json.dumps(
+        {
+            "formatLength": format_length,
+            "formatTail": _urlsafe_b64encode(format_tail),
+        }
+    )
     protected64 = _urlsafe_b64encode(protected_json)
     point = key.privkey.public_key.point
-    data = {
-        'key': key,
-        'header': {
-            'alg': 'ES256'
-        }
-    }
-    jws.header.process(data, 'sign')
-    sig = data['signer']("%s.%s" % (protected64, manifest64), key)
-    signatures = [{
-        'header': {
-            'jwk': {
-                'kty': 'EC',
-                'crv': 'P-256',
-                'x': _num_to_base64(point.x()),
-                'y': _num_to_base64(point.y())
+    data = {"key": key, "header": {"alg": "ES256"}}
+    jws.header.process(data, "sign")
+    sig = data["signer"]("%s.%s" % (protected64, manifest64), key)
+    signatures = [
+        {
+            "header": {
+                "jwk": {
+                    "kty": "EC",
+                    "crv": "P-256",
+                    "x": _num_to_base64(point.x()),
+                    "y": _num_to_base64(point.y()),
+                },
+                "alg": "ES256",
             },
-            'alg': 'ES256'
-        },
-        'signature': _urlsafe_b64encode(sig),
-        'protected': protected64
-    }]
+            "signature": _urlsafe_b64encode(sig),
+            "protected": protected64,
+        }
+    ]
     return (
-        manifest_json[:format_length] +
-        ', "signatures": ' +
-        json.dumps(signatures) +
-        format_tail
+        manifest_json[:format_length]
+        + ', "signatures": '
+        + json.dumps(signatures)
+        + format_tail
     )
 
 
 def digest(manifest):
-    # For manifests, the digest is the manifest body without the signature content, also known as
-    # the JWS payload - https://docs.docker.com/registry/spec/api/#content-digests
+    # For manifests, the digest is the manifest body without the
+    # signature content, also known as the JWS payload -
+    # https://docs.docker.com/registry/spec/api/#content-digests
     m = assign({}, manifest)
 
     try:
-        del m['signatures']
+        del m["signatures"]
     except KeyError:
         pass
 
     manifest_json = json.dumps(m, sort_keys=True)
-    return 'sha256:{}'.format(hashlib.sha256(manifest_json.encode('utf-8')).hexdigest())
+    return "sha256:{}".format(
+        hashlib.sha256(manifest_json.encode("utf-8")).hexdigest()
+    )

@@ -40,45 +40,62 @@ class CLI(object):
         verb_excl_group.add_argument("-q", "--quiet", action="store_true")
         verb_excl_group.add_argument("-v", "--verbose", action="store_true")
 
-        self.parser.add_argument('--verify-ssl', dest='verify_ssl',
-                                 action='store_true')
-        self.parser.add_argument('--no-verify-ssl', dest='verify_ssl',
-                                 action='store_false')
-        self.parser.add_argument('--api-version', metavar='VER', type=int)
-        self.parser.add_argument('--username', metavar='USERNAME')
-        self.parser.add_argument('--password', metavar='PASSWORD')
+        self.parser.add_argument(
+            "--verify-ssl", dest="verify_ssl", action="store_true"
+        )
+        self.parser.add_argument(
+            "--no-verify-ssl", dest="verify_ssl", action="store_false"
+        )
+        self.parser.add_argument("--api-version", metavar="VER", type=int)
+        self.parser.add_argument("--username", metavar="USERNAME")
+        self.parser.add_argument("--password", metavar="PASSWORD")
 
         auth_excl_group = self.parser.add_mutually_exclusive_group()
         auth_excl_group.add_argument(
-            '--authorization-service-url', metavar='AUTH_SERVICE_URL', type=str,
+            "--authorization-service-url",
+            metavar="AUTH_SERVICE_URL",
+            type=str,
             help=(
-                'auth service host URL with with scheme and path '
-                '[e.g. http://foo.com/v2/token] (v2 API only)'
+                "auth service host URL with with scheme and path "
+                "[e.g. http://foo.com/v2/token] (v2 API only)"
             ),
         )
         # DEPRECATED old form of the argument that assumes a path for the URL
         auth_excl_group.add_argument(
-            '--authorization-service', metavar='AUTH_SERVICE', type=str,
+            "--authorization-service",
+            metavar="AUTH_SERVICE",
+            type=str,
             help=(
-                '[DEPRECATED] auth service host URL with scheme, without path '
-                '[e.g. http://foo.com] (v2 API only)'
+                "[DEPRECATED] auth service host URL with scheme, without path "
+                "[e.g. http://foo.com] (v2 API only)"
             ),
         )
 
         self.parser.add_argument(
-            '--authorization-service-name', metavar='AUTH_SERVICE_NAME', type=str,
+            "--authorization-service-name",
+            metavar="AUTH_SERVICE_NAME",
+            type=str,
             help=(
                 'auth service URL "service" query parameter for custom auth service names '
-                '[e.g. container_registry, for GitLab auth] (v2 API only)'
+                "[e.g. container_registry, for GitLab auth] (v2 API only)"
             ),
         )
 
-        self.parser.add_argument('registry', metavar='REGISTRY', nargs=1,
-                                 help='registry URL (including scheme)')
-        self.parser.add_argument('repository', metavar='REPOSITORY', nargs='?',
-                                 help='repository (including namespace)')
-        self.parser.add_argument('ref', metavar='REF', nargs='?',
-                                 help='tag or digest')
+        self.parser.add_argument(
+            "registry",
+            metavar="REGISTRY",
+            nargs=1,
+            help="registry URL (including scheme)",
+        )
+        self.parser.add_argument(
+            "repository",
+            metavar="REPOSITORY",
+            nargs="?",
+            help="repository (including namespace)",
+        )
+        self.parser.add_argument(
+            "ref", metavar="REF", nargs="?", help="tag or digest"
+        )
 
         self.parser.set_defaults(verify_ssl=True, api_version=None)
 
@@ -87,33 +104,35 @@ class CLI(object):
 
         basic_config_args = {}
         if args.verbose:
-            basic_config_args['level'] = logging.DEBUG
+            basic_config_args["level"] = logging.DEBUG
         elif args.quiet:
-            basic_config_args['level'] = logging.WARNING
+            basic_config_args["level"] = logging.WARNING
 
         logging.basicConfig(**basic_config_args)
 
         kwargs = {
-            'username': args.username,
-            'password': args.password,
-            'verify_ssl': args.verify_ssl,
-            'auth_service_name': args.authorization_service_name,
-            'auth_service_url_full': args.authorization_service_url
+            "username": args.username,
+            "password": args.password,
+            "verify_ssl": args.verify_ssl,
+            "auth_service_name": args.authorization_service_name,
+            "auth_service_url_full": args.authorization_service_url,
         }
 
         # Get the URL of the auth service from the command-line flags, accounting for the
         # deprecated url flag; only use the deprecated one if the
         if args.authorization_service:
             warnings.warn(
-                'The --authorization-service flag is deprecated; '
-                'use --authorization-service-url instead',
-                DeprecationWarning
+                "The --authorization-service flag is deprecated; "
+                "use --authorization-service-url instead",
+                DeprecationWarning,
             )
-            kwargs.setdefault('auth_service_url_full',
-                              urljoin(args.authorization_service, 'v2/token'))
+            kwargs.setdefault(
+                "auth_service_url_full",
+                urljoin(args.authorization_service, "v2/token"),
+            )
 
         if args.api_version:
-            kwargs['api_version'] = args.api_version
+            kwargs["api_version"] = args.api_version
 
         client = DockerRegistryClient(args.registry[0], **kwargs)
 
@@ -174,7 +193,7 @@ class CLI(object):
                 print(json.dumps(image_json, indent=2, sort_keys=True))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         cli = CLI()
         cli.run()

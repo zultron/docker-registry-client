@@ -9,10 +9,10 @@ import pytest
 from docker import utils as docker_utils
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def docker_client():
     client_cfg = docker_utils.kwargs_from_env()
-    return docker.Client(version='1.21', **client_cfg)
+    return docker.Client(version="1.21", **client_cfg)
 
 
 def wait_till_up(url, attempts):
@@ -21,7 +21,7 @@ def wait_till_up(url, attempts):
             requests.get(url)
             return
         except exceptions.ConnectionError:
-            time.sleep(0.1 * 2**i)
+            time.sleep(0.1 * 2 ** i)
     else:
         requests.get(url)
 
@@ -29,23 +29,18 @@ def wait_till_up(url, attempts):
 @pytest.yield_fixture()
 def registry(docker_client):
     cli = docker_client
-    cli.pull('registry', '2')
+    cli.pull("registry", "2")
     cont = cli.create_container(
-        'registry:2',
+        "registry:2",
         ports=[5000],
-        host_config=cli.create_host_config(
-            port_bindings={
-                5000: 5000,
-            },
-        ),
-        # Have to explicitly enable support for v1 schemas on recent versions of registry
-        environment={
-          'REGISTRY_COMPATIBILITY_SCHEMA1': '{ "enabled": true }',
-        },
+        host_config=cli.create_host_config(port_bindings={5000: 5000,},),
+        # Have to explicitly enable support for v1 schemas on recent
+        # versions of registry
+        environment={"REGISTRY_COMPATIBILITY_SCHEMA1": '{ "enabled": true }',},
     )
     try:
         cli.start(cont)
-        wait_till_up('http://localhost:5000', 3)
+        wait_till_up("http://localhost:5000", 3)
         try:
             yield
         finally:

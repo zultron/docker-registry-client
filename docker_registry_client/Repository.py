@@ -19,25 +19,27 @@ class BaseRepository(object):
 class RepositoryV1(BaseRepository):
     def __init__(self, client, repository, namespace=None):
         if namespace is None:
-            namespace = 'library'
+            namespace = "library"
 
-        super(RepositoryV1, self).__init__(client, repository,
-                                           namespace=namespace)
+        super(RepositoryV1, self).__init__(
+            client, repository, namespace=namespace
+        )
         self._images = None
 
     def __repr__(self):
-        return 'RepositoryV1({name})'.format(name=self.name)
+        return "RepositoryV1({name})".format(name=self.name)
 
     def refresh(self):
-        self._images = self._client.get_repository_tags(self.namespace,
-                                                        self.repository)
+        self._images = self._client.get_repository_tags(
+            self.namespace, self.repository
+        )
 
     def tags(self):
         if self._images is None:
             self.refresh()
 
         if type(self._images) is list:
-            return list(taginfo['name'] for taginfo in self._images)
+            return list(taginfo["name"] for taginfo in self._images)
         else:
             return list(self._images.keys())
 
@@ -52,12 +54,14 @@ class RepositoryV1(BaseRepository):
         return Image(image_id, self._client)
 
     def untag(self, tag):
-        return self._client.delete_repository_tag(self.namespace,
-                                                  self.repository, tag)
+        return self._client.delete_repository_tag(
+            self.namespace, self.repository, tag
+        )
 
     def tag(self, tag, image_id):
-        return self._client.set_tag(self.namespace, self.repository,
-                                    tag, image_id)
+        return self._client.set_tag(
+            self.namespace, self.repository, tag, image_id
+        )
 
     def delete_repository(self):
         # self._client.delete_repository(self.namespace, self.repository)
@@ -66,12 +70,13 @@ class RepositoryV1(BaseRepository):
 
 class RepositoryV2(BaseRepository):
     def __init__(self, client, repository, namespace=None):
-        super(RepositoryV2, self).__init__(client, repository,
-                                           namespace=namespace)
+        super(RepositoryV2, self).__init__(
+            client, repository, namespace=namespace
+        )
         self._tags = None
 
     def __repr__(self):
-        return 'RepositoryV2({name})'.format(name=self.name)
+        return "RepositoryV2({name})".format(name=self.name)
 
     def tags(self):
         if self._tags is None:
@@ -90,7 +95,7 @@ class RepositoryV2(BaseRepository):
 
     def refresh(self):
         response = self._client.get_repository_tags(self.name)
-        self._tags = response['tags']
+        self._tags = response["tags"]
 
 
 def Repository(client, *args, **kwargs):
